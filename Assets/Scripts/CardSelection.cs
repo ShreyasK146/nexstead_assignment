@@ -3,31 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using DG.Tweening;
+using System;
+using TMPro;
 public class CardSelection : MonoBehaviour
 {
     private Ray ray;
     private RaycastHit hit;
     private Transform deck;
-    private List<GameObject> selectedCards = new List<GameObject>();
+    [HideInInspector] public List<GameObject> selectedCards = new List<GameObject>();
 
-    private void Start()
-    {
-        Invoke("TestCall", 5);
-    }
+
 
     private void Update()
     {
-        if(Input.GetMouseButtonDown(0))
+        HandleMouseClick();
+    }
+
+    private void HandleMouseClick()
+    {
+        if (Input.GetMouseButtonDown(0) && !GameManager.Instance.cardWasClicked)
         {
             ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if(Physics.Raycast(ray,out hit))
+            if (Physics.Raycast(ray, out hit))
             {
                 if (hit.collider != null && hit.collider.gameObject.tag == "card")
                 {
+                    GameManager.Instance.cardWasClicked = true;
+                    
                     deck = hit.collider.transform.parent;
 
                     string topColor = deck.GetChild(0).GetComponent<CardData>().cardColor;
                     string clickedColor = hit.collider.GetComponent<CardData>().cardColor;
+                    GameManager.Instance.selectedCardColor = clickedColor;
 
                     if (clickedColor != topColor) return;
                     else
@@ -42,41 +49,15 @@ public class CardSelection : MonoBehaviour
                             else
                             {
                                 selectedCards.Add(card.gameObject);
-                                Debug.Log(card.gameObject.name);
                             }
-                                
+
                         }
+                        GameEvents.Instance.CardWasClicked();
                     }
                 }
-                
+
             }
         }
-    }
-
-    private void TestCall()
-    {
-        for (int i = 0; i < selectedCards.Count; i++)
-        {
-            int index = i; 
-            DOVirtual.DelayedCall(i * 0.15f, () => {
-                AnimateCardToBelt(selectedCards[index]);
-            });
-        }
-    }
-
-    public void AnimateCardToBelt(GameObject card)
-    {
-        card.transform.SetParent(null);
-        Sequence seq = DOTween.Sequence();
-
-        seq.Append(card.transform.DOMove(new Vector3(-1, -1, -5), 0.3f)
-            .SetEase(Ease.OutCubic));
-        seq.Append(card.transform.DOMove(new Vector3(-5, 1.8f, -2), 0.4f)
-            .SetEase(Ease.InOutCubic));
-        seq.Append(card.transform.DORotate(new Vector3(0, 90, 0), 0.2f)
-            .SetEase(Ease.OutCubic));
-        seq.Append(card.transform.DOMove(new Vector3(-5, 1.8f, 0.35f), 0.25f)
-            .SetEase(Ease.InCubic));
     }
 }
 
