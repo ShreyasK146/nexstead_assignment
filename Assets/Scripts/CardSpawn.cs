@@ -38,7 +38,7 @@ public class CardSpawn : MonoBehaviour
                 cardPrefab.transform.localScale = new Vector3(7.5f, 2.15f, 0.25f);
             }
 
-
+            GameManager.Instance.totalCardCount++; // absoluetly not necessary to do this now. but for future if automation is done 
         }
         for (int i = 0; i < blueCardCount * 2; i++)
         {
@@ -56,11 +56,9 @@ public class CardSpawn : MonoBehaviour
                 cardPrefab.transform.localRotation = Quaternion.Euler(90, 0, 0);
                 cardPrefab.transform.localScale = new Vector3(7.5f, 2.15f, 0.25f);
             }
+            GameManager.Instance.totalCardCount++;
         }
     }
 
-    private void Update()
-    {
-      
-    }
+
 }

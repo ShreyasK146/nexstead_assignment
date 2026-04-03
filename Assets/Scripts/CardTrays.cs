@@ -14,19 +14,27 @@ public class CardTrays : MonoBehaviour
     private void Start()
     {
         SpawnTrays();
+        GameEvents.Instance.OnCardWasClicked += CardSelected;
     }
-    
+
+
+
+    private void OnDisable()
+    {
+        GameEvents.Instance.OnCardWasClicked -= CardSelected;
+    }
+
     private void SpawnTrays()
     {
-        for(int i = 0; i < 2; i++)
+        for (int i = 0; i < 2; i++)
         {
-            if(i == 0)
+            if (i == 0)
             {
                 tray = Instantiate(tray1Prefab, tray1Transform);
                 tray.transform.localPosition = new Vector3(-0.75f, 2.2f + i * 1.6f, 0.9f + i * 0.35f);
                 tray.transform.localRotation = Quaternion.Euler(90f, 90f, -90f);
                 tray.transform.localScale = new Vector3(0.085f, 0.085f, 0.2f);
-                GameManager.Instance.tray1sColor = tray.GetComponent<TrayData>().TrayColor;
+                
             }
 
             else if (i == 1)
@@ -45,7 +53,7 @@ public class CardTrays : MonoBehaviour
                 tray.transform.localPosition = new Vector3(0.75f, 2.2f + i * 1.6f, 0.9f + i * 0.35f);
                 tray.transform.localRotation = Quaternion.Euler(90f, 90f, -90f);
                 tray.transform.localScale = new Vector3(0.085f, 0.085f, 0.2f);
-                GameManager.Instance.tray2sColor = tray.GetComponent<TrayData>().TrayColor;
+               
             }
 
             else if (i == 1)
@@ -56,11 +64,31 @@ public class CardTrays : MonoBehaviour
                 tray.transform.localScale = new Vector3(0.085f, 0.085f, 0.2f);
             }
         }
+
+
+    }
+
+    private void CardSelected()
+    {
+        if (tray1Transform.childCount > 0)
+            GameManager.Instance.tray1sColor = tray1Transform.GetChild(0).GetComponent<TrayData>().TrayColor;
+        if(tray2Transform.childCount > 0) 
+            GameManager.Instance.tray2sColor = tray2Transform.GetChild(0).GetComponent<TrayData>().TrayColor;
+
+        if (tray1Transform.childCount > 0 && GameManager.Instance.selectedCardColor == GameManager.Instance.tray1sColor)
+        {
+            GameManager.Instance.matchingTrayFound = true;
+            GameManager.Instance.matchingTrayTransform =  tray1Transform.GetChild(0);
+
+        }
+        else if (tray2Transform.childCount > 0 && GameManager.Instance.selectedCardColor == GameManager.Instance.tray2sColor)
+        {
+            GameManager.Instance.matchingTrayFound = true;
+            GameManager.Instance.matchingTrayTransform = tray2Transform.GetChild(0);
+        }
+        else
+        {
+            GameManager.Instance.matchingTrayFound = false;
+        }
     }
 }
-
-//class Trays
-//{
-//    public int Slot { get; set; }
-//    public string SlotColor { get; set; }
-//}

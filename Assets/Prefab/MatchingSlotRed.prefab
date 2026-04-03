@@ -153,5 +153,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ae51e17d60a5e84bad62b73f2be25b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TrayData
-  trayColor: red
+  TrayColor: red
   slotsInTray: 6

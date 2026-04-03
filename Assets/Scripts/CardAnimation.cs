@@ -1,7 +1,7 @@
 using DG.Tweening;
 using System;
 using System.Collections;
-using System.Runtime.CompilerServices;
+
 using TMPro;
 using UnityEngine;
 
@@ -10,7 +10,23 @@ public class CardAnimation : MonoBehaviour
     [SerializeField] private CardSelection cardSelection;
     private int completedCards = 0;
 
+    private Vector3[] trayslotFinal = {
+    new Vector3(-0.75f, 1.796f, 1.16f),
+    new Vector3(-0.75f, 1.995f, 1.16f),
+    new Vector3(-0.75f, 2.242f, 1.16f),
+    new Vector3(-0.75f, 2.456f, 1.16f),
+    new Vector3(-0.75f, 2.676f, 1.16f),
+    new Vector3(-0.75f, 2.904f, 1.16f),
+};
 
+    private Vector3[] trayslotEntry = {
+    new Vector3(-0.75f, 2.430f, 0.05f),
+    new Vector3(-0.75f, 2.628f, 0.05f),
+    new Vector3(-0.75f, 2.876f, 0.05f),
+    new Vector3(-0.75f, 3.090f, 0.05f),
+    new Vector3(-0.75f, 3.304f, 0.05f),
+    new Vector3(-0.75f, 3.534f, 0.05f),
+};
     private void Start()
     {
         GameEvents.Instance.OnCardWasClicked += CardSelected;
@@ -23,7 +39,7 @@ public class CardAnimation : MonoBehaviour
 
     private void CardSelected()
     {
-        
+
         for (int i = 0; i < cardSelection.selectedCards.Count; i++)
         {
             int index = i;
@@ -55,9 +71,12 @@ public class CardAnimation : MonoBehaviour
             {
                 completedCards = 0;
                 AnimateAllCardsOnBelt();
+                cardSelection.RefreshUnmatchedTray();
+                cardSelection.RefreshDeck();
+
             }
         });
-        
+
 
 
     }
@@ -68,11 +87,30 @@ public class CardAnimation : MonoBehaviour
         for (int i = 0; i < cardSelection.selectedCards.Count; i++)
         {
             int index = i;
+
+            //no need animation for this 
             cardSelection.selectedCards[index].transform.localPosition = new Vector3(-4.4f, 1.28f, 0.35f);
             cardSelection.selectedCards[index].transform.localRotation = Quaternion.Euler(0, 90, 90);
-            DOVirtual.DelayedCall(i * 0.05f, () => {
-                AnimateCardOnBelt(cardSelection.selectedCards[index]);
-            });
+            
+            Debug.Log(GameManager.Instance.matchingTrayFound);
+            if (!GameManager.Instance.matchingTrayFound)
+            {
+                
+                
+                DOVirtual.DelayedCall(i * 0.05f, () =>
+                {
+                    AnimateCardOnBelt(cardSelection.selectedCards[index]);
+                });
+            }
+            else if (GameManager.Instance.matchingTrayFound)
+            {
+                GameManager.Instance.totalCardsMatched++;
+                DOVirtual.DelayedCall(i * 0.05f, () =>
+                {
+                    AnimateCardOnBelt2(cardSelection.selectedCards[index], index);
+                });
+            }
+
         }
     }
 
@@ -81,30 +119,90 @@ public class CardAnimation : MonoBehaviour
 
         Sequence seq2 = DOTween.Sequence();
         seq2.Append(card.transform.DOMove(new Vector3(4.4f, 1.28f, 0.35f), 2f).SetEase(Ease.Linear));
+
+        int currentSlot = GameManager.Instance.unusedCardCount;
+        GameManager.Instance.unusedCardCount++;
+
+        seq2.Append(card.transform.DOMove(new Vector3(-3.2f + currentSlot * 0.34f, -0.75f, -0.1f), 0.4f)
+            .SetEase(Ease.InCubic));
+        cardSelection.RefreshUnmatchedTray();
+        seq2.OnComplete(() =>
+        {
+            
+            card.transform.SetParent(GameManager.Instance.unmatchedTrayTransform);
+            completedCards++;
+            if (completedCards == cardSelection.selectedCards.Count)
+            {
+                completedCards = 0;
+                GameManager.Instance.cardsInBeltCount -= cardSelection.selectedCards.Count;
+                GameEvents.Instance.CardsInBeltChanged(GameManager.Instance.cardsInBeltCount);
+
+            }
+        });
+
+        GameManager.Instance.cardWasClicked = false;
+        //just in case
+        GameManager.Instance.matchingTrayTransform = null;
+        GameManager.Instance.matchingTrayFound = false;
+
+    }
+    public void AnimateCardOnBelt2(GameObject card, int index)
+    {
+        float x = GameManager.Instance.matchingTrayTransform.position.x; // -0.75 or 0.75
+
+        Vector3 entry = trayslotEntry[index];
+        Vector3 final = trayslotFinal[index];
+
+        // flip x if right side tray
+        entry.x = x;
+        final.x = x;
+
+        Sequence seq2 = DOTween.Sequence();
+
+        // move along belt to tray x position
+        seq2.Append(card.transform.DOMove(new Vector3(x, 1.28f, 0.35f), 1f)
+            .SetEase(Ease.Linear));
+
+        // lift up and rotate
+        seq2.Append(card.transform.DOMove(new Vector3(x, 1.28f, -5f), 0.3f)
+            .SetEase(Ease.OutCubic));
+        seq2.Join(card.transform.DORotate(new Vector3(60, 180, 0), 0.3f)
+            .SetEase(Ease.OutCubic));
+
+        // move to slot entry
+        seq2.Append(card.transform.DOMove(entry, 0.3f)
+            .SetEase(Ease.OutCubic));
+
+        // push into slot
+        seq2.Append(card.transform.DOMove(final, 0.25f)
+            .SetEase(Ease.InCubic));
+        seq2.OnComplete(() =>
+        {
+            completedCards++;
+            if (completedCards == cardSelection.selectedCards.Count)
+            {
+                completedCards = 0;
+                StartCoroutine(RemoveCompletedTray());
+                GameManager.Instance.cardsInBeltCount -= cardSelection.selectedCards.Count;
+                GameEvents.Instance.CardsInBeltChanged(GameManager.Instance.cardsInBeltCount);
+            }
+           
+        });
+    }
+
+    private IEnumerator RemoveCompletedTray()
+    {
+        yield return new WaitForSeconds(1f);
+        foreach(var card in cardSelection.selectedCards)
+        {
+            Destroy(card.gameObject);
+        }
+        Transform trayTransform = GameManager.Instance.matchingTrayTransform.parent;
+        if(trayTransform.childCount > 1)
+            trayTransform.GetChild(1).GetComponent<Transform>().position = GameManager.Instance.matchingTrayTransform.position;
+        GameManager.Instance.matchingTrayTransform = null;
+        Destroy(trayTransform.GetChild(0).gameObject);
+        GameManager.Instance.cardWasClicked = false;
+        GameManager.Instance.matchingTrayFound = false;
     }
 }
-/*
- * some hardcode values
- * -4.4,1.28,0.35 with rotation 0,90,90
- * -0.75,1.28,0.35 or 0.75,1.28,0.35 
- * -0.75,1.28,-5
- * rotate 60,180,0
- * 
- * Vector3(-0.75,1.796,1.16) - Vector3(-0.75,2.430,0.05)
- * Vector3(-0.75,1.995,1.16) - Vector3(-0.75,2.628,0.05)
- * Vector3(-0.75,2.242,1.16) - Vector3(-0.75,2.876,0.05)
- * Vector3(-0.75,2.456,1.16) - Vector3(-0.75,3.090,0.05)
- * Vector3(-0.75,2.676,1.16) - Vector3(-0.75,3.304,0.05)
- * Vector3(-0.75,2.904,1.16) - Vector3(-0.75,3.534,0.05)
- * 
- * Vector3(-0.75,2.430,0.05)
- * Vector3(-0.75,2.628,0.05)
- * Vector3(-0.75,2.876,0.05)
- * Vector3(-0.75,3.090,0.05)
- * Vector3(-0.75,3.304,0.05)
- * Vector3(-0.75,3.534,0.05)
- * 
- * 4.4,1.28,0.35 with rotation 0,90,90
- * 5,1.575,-0.5
- * Vector3(-3.2,-0.75,-0.1) alway do x-0.34 
- */

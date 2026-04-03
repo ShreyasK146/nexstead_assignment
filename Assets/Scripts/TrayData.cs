@@ -2,6 +2,6 @@ using UnityEngine;
 
 public class TrayData : MonoBehaviour
 {
-     public string TrayColor { get; set; }
-     public int slotsInTray {  get; set; }
+    public string TrayColor = "";
+    public int slotsInTray = 6;
 }

@@ -8,6 +8,8 @@ public class GameEvents : MonoBehaviour
 
     public event Action OnCardWasClicked;
 
+    public event Action<int> OnCardsInBeltChangedd;
+
     private void Awake()
     {
         Instance = this;
@@ -18,5 +20,8 @@ public class GameEvents : MonoBehaviour
         OnCardWasClicked?.Invoke();
     }
 
-   
+   public void CardsInBeltChanged(int count)
+    {
+        OnCardsInBeltChangedd?.Invoke(count);
+    }
 }
