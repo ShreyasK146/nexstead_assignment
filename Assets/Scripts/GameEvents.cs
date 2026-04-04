@@ -1,10 +1,14 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameEvents : MonoBehaviour
 {
     public static GameEvents Instance;
+
+    /*
+     * Managing oncardclick and oncardsinbelt changed events
+     * 
+     */
 
     public event Action OnCardWasClicked;
 

@@ -7,17 +7,16 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     public bool cardWasClicked = false;
+    public bool matchingTrayFound = false;
+    public int cardsInBeltCount = 0;
+    public int totalCardsMatched = 0;
+    public int totalCardCount = 0;
+    public int unusedCardCount = 0;
     public string selectedCardColor = "";
     public string tray1sColor = "";
     public string tray2sColor = "";
     public Transform matchingTrayTransform;
-    public bool matchingTrayFound = false;
     public Transform unmatchedTrayTransform;
-    public int cardsInBeltCount = 0;
-
-    public int totalCardsMatched = 0;
-    public int totalCardCount = 0;
-    public int unusedCardCount = 0;
     [SerializeField] private TextMeshProUGUI endGameText;
 
     private void Awake()
@@ -25,6 +24,9 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
+    /*
+     * just to showcase if player won or lost not important for now
+     */
     private void Start()
     {
         InvokeRepeating("CheckForGameEnd", 1, 1);

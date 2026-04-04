@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class CardSpawn : MonoBehaviour
@@ -18,7 +17,9 @@ public class CardSpawn : MonoBehaviour
     {
         SpawnCards();
     }
-
+    /*
+     * Hard Coded Card Spawning in Deck
+     */
     private void SpawnCards()
     {
         for (int i = 0; i < redCardCount * 2; i++)
@@ -38,7 +39,7 @@ public class CardSpawn : MonoBehaviour
                 cardPrefab.transform.localScale = new Vector3(7.5f, 2.15f, 0.25f);
             }
 
-            GameManager.Instance.totalCardCount++; // absoluetly not necessary to do this now. but for future if automation is done 
+            GameManager.Instance.totalCardCount++; // absoluetly not necessary to do this now. but for future if automation is done (we can just simply assingn totalcount = 24)
         }
         for (int i = 0; i < blueCardCount * 2; i++)
         {

@@ -1,8 +1,5 @@
 using DG.Tweening;
-using System;
 using System.Collections;
-
-using TMPro;
 using UnityEngine;
 
 public class CardAnimation : MonoBehaviour
@@ -10,6 +7,7 @@ public class CardAnimation : MonoBehaviour
     [SerializeField] private CardSelection cardSelection;
     private int completedCards = 0;
 
+    //hardcoded values for cards to go into matched tray
     private Vector3[] trayslotFinal = {
     new Vector3(-0.75f, 1.796f, 1.16f),
     new Vector3(-0.75f, 1.995f, 1.16f),
@@ -43,20 +41,20 @@ public class CardAnimation : MonoBehaviour
         for (int i = 0; i < cardSelection.selectedCards.Count; i++)
         {
             int index = i;
-
+            //each call should have some delay to showcase the animation of different cards
             DOVirtual.DelayedCall(i * 0.25f, () => {
                 AnimateCardToBelt(cardSelection.selectedCards[index]);
             });
         }
-        //GameManager.Instance.cardWasClicked = false;
     }
 
+    //aniamte cards to to the begining of belt
     public void AnimateCardToBelt(GameObject card)
     {
         card.transform.SetParent(null);
-        Sequence seq = DOTween.Sequence();
+        Sequence seq = DOTween.Sequence();//sequencee is used to hold multiple tweens which plays one after another
 
-        seq.Append(card.transform.DOMove(new Vector3(card.transform.position.x, -1, -5), 0.3f)
+        seq.Append(card.transform.DOMove(new Vector3(card.transform.position.x, -1, -5), 0.3f) // 0.3f represents how fast/duration animation should play
             .SetEase(Ease.OutCubic));
         seq.Append(card.transform.DOMove(new Vector3(-5, 1.8f, -2), 0.5f)
             .SetEase(Ease.OutCubic));
@@ -67,6 +65,7 @@ public class CardAnimation : MonoBehaviour
         seq.OnComplete(() =>
         {
             completedCards++;
+            //call this once all tweens completed
             if (completedCards == cardSelection.selectedCards.Count)
             {
                 completedCards = 0;
@@ -88,18 +87,17 @@ public class CardAnimation : MonoBehaviour
         {
             int index = i;
 
-            //no need animation for this 
+            //no need animation for this because z is behind other object
             cardSelection.selectedCards[index].transform.localPosition = new Vector3(-4.4f, 1.28f, 0.35f);
             cardSelection.selectedCards[index].transform.localRotation = Quaternion.Euler(0, 90, 90);
             
             Debug.Log(GameManager.Instance.matchingTrayFound);
             if (!GameManager.Instance.matchingTrayFound)
             {
-                
-                
+               
                 DOVirtual.DelayedCall(i * 0.05f, () =>
                 {
-                    AnimateCardOnBelt(cardSelection.selectedCards[index]);
+                    AnimateCardOnBeltToUnmatchedTray(cardSelection.selectedCards[index]);
                 });
             }
             else if (GameManager.Instance.matchingTrayFound)
@@ -107,25 +105,28 @@ public class CardAnimation : MonoBehaviour
                 GameManager.Instance.totalCardsMatched++;
                 DOVirtual.DelayedCall(i * 0.05f, () =>
                 {
-                    AnimateCardOnBelt2(cardSelection.selectedCards[index], index);
+                    AnimateCardToMatchingTray(cardSelection.selectedCards[index], index);
                 });
             }
 
         }
     }
 
-    public void AnimateCardOnBelt(GameObject card)
+    public void AnimateCardOnBeltToUnmatchedTray(GameObject card)
     {
 
         Sequence seq2 = DOTween.Sequence();
-        seq2.Append(card.transform.DOMove(new Vector3(4.4f, 1.28f, 0.35f), 2f).SetEase(Ease.Linear));
+        seq2.Append(card.transform.DOMove(new Vector3(4.4f, 1.28f, 0.35f), 2f).SetEase(Ease.Linear)); // animate card to end of belt
 
         int currentSlot = GameManager.Instance.unusedCardCount;
-        GameManager.Instance.unusedCardCount++;
+        GameManager.Instance.unusedCardCount++; // keep track of unusedCardCount
 
+        //so each card should be seperated via certain x axis on unusedcardtransform(hardcoding)
         seq2.Append(card.transform.DOMove(new Vector3(-3.2f + currentSlot * 0.34f, -0.75f, -0.1f), 0.4f)
             .SetEase(Ease.InCubic));
+
         cardSelection.RefreshUnmatchedTray();
+
         seq2.OnComplete(() =>
         {
             
@@ -135,25 +136,26 @@ public class CardAnimation : MonoBehaviour
             {
                 completedCards = 0;
                 GameManager.Instance.cardsInBeltCount -= cardSelection.selectedCards.Count;
-                GameEvents.Instance.CardsInBeltChanged(GameManager.Instance.cardsInBeltCount);
+                GameEvents.Instance.CardsInBeltChanged(GameManager.Instance.cardsInBeltCount); // inform gameevents on cardsinbeltchange
 
             }
         });
 
         GameManager.Instance.cardWasClicked = false;
+
         //just in case
         GameManager.Instance.matchingTrayTransform = null;
         GameManager.Instance.matchingTrayFound = false;
 
     }
-    public void AnimateCardOnBelt2(GameObject card, int index)
+    public void AnimateCardToMatchingTray(GameObject card, int index)
     {
-        float x = GameManager.Instance.matchingTrayTransform.position.x; // -0.75 or 0.75
+        float x = GameManager.Instance.matchingTrayTransform.position.x; // -0.75 or 0.75 (hard coded either left or right tray x pos)
 
         Vector3 entry = trayslotEntry[index];
         Vector3 final = trayslotFinal[index];
 
-        // flip x if right side tray
+        // flip x if right side tray (left side no need to worry hardcoded comes with -0.75 x value)
         entry.x = x;
         final.x = x;
 
@@ -179,10 +181,11 @@ public class CardAnimation : MonoBehaviour
         seq2.OnComplete(() =>
         {
             completedCards++;
+            
             if (completedCards == cardSelection.selectedCards.Count)
             {
                 completedCards = 0;
-                StartCoroutine(RemoveCompletedTray());
+                StartCoroutine(RemoveCompletedTray()); // remove the mathcing tray if slot is full and update transform and other things
                 GameManager.Instance.cardsInBeltCount -= cardSelection.selectedCards.Count;
                 GameEvents.Instance.CardsInBeltChanged(GameManager.Instance.cardsInBeltCount);
             }
@@ -197,11 +200,14 @@ public class CardAnimation : MonoBehaviour
         {
             Destroy(card.gameObject);
         }
+        
         Transform trayTransform = GameManager.Instance.matchingTrayTransform.parent;
-        if(trayTransform.childCount > 1)
+
+        if(trayTransform.childCount > 1) // check if child count is more than 1 then only we need to move the upper once to down 
             trayTransform.GetChild(1).GetComponent<Transform>().position = GameManager.Instance.matchingTrayTransform.position;
+        
         GameManager.Instance.matchingTrayTransform = null;
-        Destroy(trayTransform.GetChild(0).gameObject);
+        Destroy(trayTransform.GetChild(0).gameObject);//destroy the fully matched tray
         GameManager.Instance.cardWasClicked = false;
         GameManager.Instance.matchingTrayFound = false;
     }

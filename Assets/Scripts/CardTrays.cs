@@ -1,4 +1,4 @@
-using System;
+
 using UnityEngine;
 
 public class CardTrays : MonoBehaviour
@@ -23,7 +23,9 @@ public class CardTrays : MonoBehaviour
     {
         GameEvents.Instance.OnCardWasClicked -= CardSelected;
     }
-
+    /*
+     * Hard Coded Tray Spawning
+     */
     private void SpawnTrays()
     {
         for (int i = 0; i < 2; i++)
@@ -67,7 +69,11 @@ public class CardTrays : MonoBehaviour
 
 
     }
-
+    /*
+     * Any time the card is selected make sure to update tray1 and tray2s color , 
+     * update if matching tray is found and store its transform
+     * if not found set variable back to false
+     */
     private void CardSelected()
     {
         if (tray1Transform.childCount > 0)
