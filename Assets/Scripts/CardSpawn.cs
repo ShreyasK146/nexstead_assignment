@@ -22,9 +22,9 @@ public class CardSpawn : MonoBehaviour
      */
     private void SpawnCards()
     {
-        for (int i = 0; i < redCardCount * 2; i++)
+        for (int i = 0; i < redCardCount*2; i++)
         {
-            if (i < 6)
+            if (i < redCardCount)
             {
                 cardPrefab = Instantiate(redCard, Deck1.transform);
                 cardPrefab.transform.localPosition = new Vector3(0, 0.1f - i * 0.01f, 3.5f - i * 0.5f);
@@ -41,9 +41,9 @@ public class CardSpawn : MonoBehaviour
 
             GameManager.Instance.totalCardCount++; // absoluetly not necessary to do this now. but for future if automation is done (we can just simply assingn totalcount = 24)
         }
-        for (int i = 0; i < blueCardCount * 2; i++)
+        for (int i = 0; i < blueCardCount*2; i++)
         {
-            if (i < 6)
+            if (i < blueCardCount)
             {
                 cardPrefab = Instantiate(blueCard, Deck2.transform);
                 cardPrefab.transform.localPosition = new Vector3(0, 0.1f - i * 0.01f, 3.5f - i * 0.5f);

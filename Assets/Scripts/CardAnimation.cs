@@ -5,6 +5,7 @@ using UnityEngine;
 public class CardAnimation : MonoBehaviour
 {
     [SerializeField] private CardSelection cardSelection;
+    
     private int completedCards = 0;
 
     //hardcoded values for cards to go into matched tray
@@ -57,9 +58,9 @@ public class CardAnimation : MonoBehaviour
         seq.Append(card.transform.DOMove(new Vector3(card.transform.position.x, -1, -5), 0.3f) // 0.3f represents how fast/duration animation should play
             .SetEase(Ease.OutCubic));
         seq.Append(card.transform.DOMove(new Vector3(-5, 1.8f, -2), 0.5f)
-            .SetEase(Ease.OutCubic));
+            .SetEase(Ease.InOutCubic));
         seq.Append(card.transform.DORotate(new Vector3(0, 90, 0), 0.3f) //rotate him to align with slot
-            .SetEase(Ease.Linear));
+            .SetEase(Ease.OutCubic));
         seq.Append(card.transform.DOMove(new Vector3(-5, 1.8f, 0.35f), 0.4f)
             .SetEase(Ease.InCubic));
         seq.OnComplete(() =>
@@ -91,7 +92,7 @@ public class CardAnimation : MonoBehaviour
             cardSelection.selectedCards[index].transform.localPosition = new Vector3(-4.4f, 1.28f, 0.35f);
             cardSelection.selectedCards[index].transform.localRotation = Quaternion.Euler(0, 90, 90);
             
-            Debug.Log(GameManager.Instance.matchingTrayFound);
+            
             if (!GameManager.Instance.matchingTrayFound)
             {
                
@@ -103,9 +104,12 @@ public class CardAnimation : MonoBehaviour
             else if (GameManager.Instance.matchingTrayFound)
             {
                 GameManager.Instance.totalCardsMatched++;
+                
                 DOVirtual.DelayedCall(i * 0.05f, () =>
                 {
-                    AnimateCardToMatchingTray(cardSelection.selectedCards[index], index);
+                    // index + thing.. this is just hard coding for another scenario which was not necessary for current level but now its need because slotsmatched is needed to destroy cards
+                    AnimateCardToMatchingTray(cardSelection.selectedCards[index], index + GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsmatched); 
+
                 });
             }
 
@@ -181,9 +185,11 @@ public class CardAnimation : MonoBehaviour
         seq2.OnComplete(() =>
         {
             completedCards++;
-            
+            GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().matchedCards.Add(card); // fill up matched cards 
             if (completedCards == cardSelection.selectedCards.Count)
             {
+                GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsmatched += completedCards;
+                Debug.Log(GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsmatched);
                 completedCards = 0;
                 StartCoroutine(RemoveCompletedTray()); // remove the mathcing tray if slot is full and update transform and other things
                 GameManager.Instance.cardsInBeltCount -= cardSelection.selectedCards.Count;
@@ -196,18 +202,28 @@ public class CardAnimation : MonoBehaviour
     private IEnumerator RemoveCompletedTray()
     {
         yield return new WaitForSeconds(1f);
-        foreach(var card in cardSelection.selectedCards)
+        Debug.Log(GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsInTray);
+        if (GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>() != null && 
+            GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsInTray == GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsmatched) // only delete if matched tray slots is full
         {
-            Destroy(card.gameObject);
-        }
-        
-        Transform trayTransform = GameManager.Instance.matchingTrayTransform.parent;
+            var trayData = GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>();
+            foreach (var card in trayData.matchedCards) 
+            {
+                Destroy(card.gameObject); // delete all the cards in the filled up matched tray
+            }
+            trayData.matchedCards.Clear();
 
-        if(trayTransform.childCount > 1) // check if child count is more than 1 then only we need to move the upper once to down 
-            trayTransform.GetChild(1).GetComponent<Transform>().position = GameManager.Instance.matchingTrayTransform.position;
-        
+            Transform trayTransform = GameManager.Instance.matchingTrayTransform.parent;
+
+            if (trayTransform.childCount > 1) // check if child count is more than 1 then only we need to move the upper once to down 
+                trayTransform.GetChild(1).GetComponent<Transform>().position = GameManager.Instance.matchingTrayTransform.position;
+
+
+            Destroy(trayTransform.GetChild(0).gameObject);//destroy the fully matched tray
+           
+        }
+
         GameManager.Instance.matchingTrayTransform = null;
-        Destroy(trayTransform.GetChild(0).gameObject);//destroy the fully matched tray
         GameManager.Instance.cardWasClicked = false;
         GameManager.Instance.matchingTrayFound = false;
     }

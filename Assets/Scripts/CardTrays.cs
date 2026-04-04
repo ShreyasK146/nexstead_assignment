@@ -55,7 +55,7 @@ public class CardTrays : MonoBehaviour
                 tray.transform.localPosition = new Vector3(0.75f, 2.2f + i * 1.6f, 0.9f + i * 0.35f);
                 tray.transform.localRotation = Quaternion.Euler(90f, 90f, -90f);
                 tray.transform.localScale = new Vector3(0.085f, 0.085f, 0.2f);
-               
+
             }
 
             else if (i == 1)

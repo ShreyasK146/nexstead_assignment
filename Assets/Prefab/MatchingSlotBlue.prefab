@@ -155,3 +155,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TrayData
   TrayColor: blue
   slotsInTray: 6
+  slotsmatched: 0
+  matchedCards: []
