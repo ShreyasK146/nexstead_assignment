@@ -6,13 +6,15 @@ public class GameEvents : MonoBehaviour
     public static GameEvents Instance;
 
     /*
-     * Managing oncardclick and oncardsinbelt changed events
+     * Managing oncardclick , oncardsinbelt and oncardcount changed events
      * 
      */
 
     public event Action OnCardWasClicked;
 
     public event Action<int> OnCardsInBeltChangedd;
+
+    public event Action OnCardCountChanged;
 
     private void Awake()
     {
@@ -24,8 +26,15 @@ public class GameEvents : MonoBehaviour
         OnCardWasClicked?.Invoke();
     }
 
-   public void CardsInBeltChanged(int count)
+    public void CardsInBeltChanged(int count)
     {
         OnCardsInBeltChangedd?.Invoke(count);
     }
+
+    public void CardCountChanged()
+    {
+        OnCardCountChanged?.Invoke();
+    }
+
+
 }

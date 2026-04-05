@@ -28,47 +28,21 @@ public class CardTrays : MonoBehaviour
      */
     private void SpawnTrays()
     {
-        for (int i = 0; i < 2; i++)
-        {
-            if (i == 0)
-            {
-                tray = Instantiate(tray1Prefab, tray1Transform);
-                tray.transform.localPosition = new Vector3(-0.75f, 2.2f + i * 1.6f, 0.9f + i * 0.35f);
-                tray.transform.localRotation = Quaternion.Euler(90f, 90f, -90f);
-                tray.transform.localScale = new Vector3(0.085f, 0.085f, 0.2f);
-                
-            }
-
-            else if (i == 1)
-            {
-                tray = Instantiate(tray2Prefab, tray1Transform);
-                tray.transform.localPosition = new Vector3(-0.75f, 2.2f + i * 1.6f, 0.9f + i * 0.35f);
-                tray.transform.localRotation = Quaternion.Euler(90f, 90f, -90f);
-                tray.transform.localScale = new Vector3(0.085f, 0.085f, 0.2f);
-            }
-        }
-        for (int i = 0; i < 2; i++)
-        {
-            if (i == 0)
-            {
-                tray = Instantiate(tray2Prefab, tray2Transform);
-                tray.transform.localPosition = new Vector3(0.75f, 2.2f + i * 1.6f, 0.9f + i * 0.35f);
-                tray.transform.localRotation = Quaternion.Euler(90f, 90f, -90f);
-                tray.transform.localScale = new Vector3(0.085f, 0.085f, 0.2f);
-
-            }
-
-            else if (i == 1)
-            {
-                tray = Instantiate(tray1Prefab, tray2Transform);
-                tray.transform.localPosition = new Vector3(0.75f, 2.2f + i * 1.6f, 0.9f + i * 0.35f);
-                tray.transform.localRotation = Quaternion.Euler(90f, 90f, -90f);
-                tray.transform.localScale = new Vector3(0.085f, 0.085f, 0.2f);
-            }
-        }
-
+        SpawnTray(tray1Prefab, tray1Transform, 0, -1);
+        SpawnTray(tray2Prefab, tray1Transform, 1, -1);
+        SpawnTray(tray2Prefab, tray2Transform, 0, +1);
+        SpawnTray(tray1Prefab, tray2Transform, 1, +1);
 
     }
+
+    private void SpawnTray(GameObject trayPrefab, Transform trayTransform, int index ,int x) // int x represents here -x or +x axis
+    {
+        tray = Instantiate(trayPrefab, trayTransform);
+        tray.transform.localPosition = new Vector3(x * 0.75f, 2.2f + index * 1.6f, 0.9f + index * 0.35f);
+        tray.transform.localRotation = Quaternion.Euler(90f, 90f, -90f);
+        tray.transform.localScale = new Vector3(0.085f, 0.085f, 0.2f);
+    }
+
     /*
      * Any time the card is selected make sure to update tray1 and tray2s color , 
      * update if matching tray is found and store its transform

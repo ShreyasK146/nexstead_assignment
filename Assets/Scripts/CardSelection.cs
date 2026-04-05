@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
+using NUnit.Framework.Internal.Commands;
 
 public class CardSelection : MonoBehaviour
 {
@@ -20,89 +21,51 @@ public class CardSelection : MonoBehaviour
     private void HandleMouseClick()
     {
 
-        if (Input.GetMouseButtonDown(0) && !GameManager.Instance.cardWasClicked)// card click should not work when already clicked card exists
+        if(Input.GetMouseButtonDown(0) && !GameManager.Instance.cardWasClicked)// card click should not work when already clicked card exists
         {
             ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out hit))
+            if(Physics.Raycast(ray, out hit) )
             {
-                // if the hit is card and parent is not unmatched tray transform then we clicked cards in deck
-                if (hit.collider != null && hit.collider.gameObject.tag == "card" && hit.collider.gameObject.transform.parent != GameManager.Instance.unmatchedTrayTransform)
+                if (hit.collider == null || hit.collider.gameObject.tag != "card") return;
+
+                bool isUnMatchedTray = (hit.collider.gameObject.transform.parent == GameManager.Instance.unmatchedTrayTransform);
+                deck = hit.collider.transform.parent;
+
+                // if it is unmatchedtray skip child 0 because its a sprite of tray not card
+                string topColor = isUnMatchedTray? deck.GetChild(1).GetComponent<CardData>().cardColor:deck.GetChild(0).GetComponent<CardData>().cardColor;
+                
+                string clickedColor = hit.collider.GetComponent<CardData>().cardColor;
+                GameManager.Instance.selectedCardColor = clickedColor;
+
+                if (clickedColor != topColor) return;
+
+                int count = 0;
+                GameManager.Instance.cardWasClicked = true;
+                selectedCards.Clear();
+
+                foreach(Transform card in deck)
                 {
-
-                    
-                    deck = hit.collider.transform.parent;
-
-                    string topColor = deck.GetChild(0).GetComponent<CardData>().cardColor;
-                    string clickedColor = hit.collider.GetComponent<CardData>().cardColor;
-                    GameManager.Instance.selectedCardColor = clickedColor;
-
-                    if (clickedColor != topColor) return;
-                    else
+                    if (isUnMatchedTray && count == 0)
                     {
-                        int count = 0;
-                        GameManager.Instance.cardWasClicked = true;
-                        selectedCards.Clear();
-                        foreach (Transform card in deck)
-                        {
-                            if (card.GetComponent<CardData>().cardColor != clickedColor && count <= 6) // this count <=6 is just cheeky because hardcoding 6 card at a time which can go to belt
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                if(++count <= 6)
-                                {
-                                    selectedCards.Add(card.gameObject);
-                                }
-
-                            }
-
-                        }
-
-                        GameEvents.Instance.CardWasClicked();// inform gameevents on card click
+                        count++;
+                        continue; // same logic just skip 1st one
                     }
-                }
-                // if the hit is card and parent is  unmatched tray transform then we clicked cards in unmatched tray transform
-                else if (hit.collider != null && hit.collider.gameObject.tag == "card" && hit.collider.gameObject.transform.parent == GameManager.Instance.unmatchedTrayTransform) 
-                {
-                    deck = hit.collider.transform.parent;
-                    string topColor = GameManager.Instance.unmatchedTrayTransform.GetChild(1).GetComponent<CardData>().cardColor; // getchild(0) is a sprite of unusedmatch transform so we skip it always 
-                    string clickedColor = hit.collider.GetComponent<CardData>().cardColor;
-                    GameManager.Instance.selectedCardColor = clickedColor;
-                    if (clickedColor != topColor) return;
-                    else
+
+                    if(card.GetComponent<CardData>().cardColor != clickedColor) break;
+
+                    int upperlimit = isUnMatchedTray ? 7 : 6; //hardcoding for 6
+
+                    if (++count <= upperlimit)
                     {
-                        int count = 0;
-                        GameManager.Instance.cardWasClicked = true;
-                        selectedCards.Clear();
-                        foreach (Transform card in deck)
-                        {
-                            if (count == 0)
-                            {
-                                ++count;continue; // because 1st guy is just a sprite so we skip him
-                            }
-                            if (card.GetComponent<CardData>().cardColor != clickedColor && count <= 6)  // this count <=6 is just cheeky because hardcoding 6 card at a time which can go to belt
-                            {
-                                break;
-                            }
-                            else
-                            {
-                                if(++count <= 7)
-                                {
-                                    GameManager.Instance.unusedCardCount--;
-                                    selectedCards.Add(card.gameObject);
-                                }
-
-                            }
-
-                        }
-                        GameEvents.Instance.CardWasClicked(); // inform gameevents on card click
-                        
+                        if (isUnMatchedTray) GameManager.Instance.unusedCardCount--; // ok if unmatchedtray was clicked then card going from there means u reduce the card count in it
+                        selectedCards.Add(card.gameObject);
                     }
+                    else break;
                 }
-
+                GameEvents.Instance.CardWasClicked();
             }
         }
+       
     }
     //move remaining card in deck to up visually 
     public void RefreshDeck()
@@ -112,7 +75,7 @@ public class CardSelection : MonoBehaviour
         {
             foreach (Transform card in deck)
             {
-                if (!selectedCards.Contains(card.gameObject))
+                if (!selectedCards.Contains(card.gameObject)) // select cards which are in selected cards list to move them to left
                 {
                     remaining.Add(card);
                 }

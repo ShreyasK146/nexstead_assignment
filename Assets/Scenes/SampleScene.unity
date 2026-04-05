@@ -1022,7 +1022,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
+  m_IgnoreReversedGraphics: 0
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
@@ -1124,7 +1124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
+  m_IgnoreReversedGraphics: 0
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
@@ -1805,16 +1805,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
   cardWasClicked: 0
-  selectedCardColor: 
-  tray1sColor: 
-  tray2sColor: 
-  matchingTrayTransform: {fileID: 0}
   matchingTrayFound: 0
-  unmatchedTrayTransform: {fileID: 1462212313}
   cardsInBeltCount: 0
   totalCardsMatched: 0
   totalCardCount: 0
   unusedCardCount: 0
+  selectedCardColor: 
+  tray1sColor: 
+  tray2sColor: 
+  matchingTrayTransform: {fileID: 0}
+  unmatchedTrayTransform: {fileID: 1462212313}
   endGameText: {fileID: 38610847}
 --- !u!1 &1802281225
 GameObject:

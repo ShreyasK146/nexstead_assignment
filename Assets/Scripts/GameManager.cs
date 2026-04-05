@@ -25,11 +25,21 @@ public class GameManager : MonoBehaviour
     }
 
     /*
-     * just to showcase if player won or lost not important for now
+     * just to showcase if player won or lost 
      */
     private void Start()
     {
-        InvokeRepeating("CheckForGameEnd", 1, 1);
+        Invoke("SubscribeToEvent", 2);
+        
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.Instance.OnCardCountChanged -= CheckForGameEnd;
+    }
+    private void SubscribeToEvent()
+    {
+        GameEvents.Instance.OnCardCountChanged += CheckForGameEnd; // subscribing to event with a small delay to avoid null ref exception
     }
     private void CheckForGameEnd()
     {
@@ -45,7 +55,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator WaitForMessageToBeDisplayed(string message, Color color)
     {
-        yield return new WaitForSeconds(4);
+        yield return new WaitForSeconds(2);
         endGameText.text = message;
         endGameText.color = color;
         Time.timeScale = 0f;

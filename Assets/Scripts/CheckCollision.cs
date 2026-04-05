@@ -21,7 +21,7 @@ public class CheckCollision : MonoBehaviour
         if (other.tag == "card")
         {
             GameEvents.Instance.CardsInBeltChanged(++GameManager.Instance.cardsInBeltCount);
-            transform.DOPunchScale(Vector3.one * 0.11f, 0.1f, 2, 0.5f); 
+            transform.DOPunchScale(Vector3.one * 0.075f, 0.1f, 2, 0.5f); 
         }
     }
     // if cardsinbelt event is invoked update the text

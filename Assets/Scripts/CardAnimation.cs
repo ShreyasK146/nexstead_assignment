@@ -105,6 +105,7 @@ public class CardAnimation : MonoBehaviour
             {
                 GameManager.Instance.totalCardsMatched++;
                 
+
                 DOVirtual.DelayedCall(i * 0.05f, () =>
                 {
                     // index + thing.. this is just hard coding for another scenario which was not necessary for current level but now its need because slotsmatched is needed to destroy cards
@@ -125,6 +126,7 @@ public class CardAnimation : MonoBehaviour
         int currentSlot = GameManager.Instance.unusedCardCount;
         GameManager.Instance.unusedCardCount++; // keep track of unusedCardCount
 
+
         //so each card should be seperated via certain x axis on unusedcardtransform(hardcoding)
         seq2.Append(card.transform.DOMove(new Vector3(-3.2f + currentSlot * 0.34f, -0.75f, -0.1f), 0.4f)
             .SetEase(Ease.InCubic));
@@ -133,19 +135,21 @@ public class CardAnimation : MonoBehaviour
 
         seq2.OnComplete(() =>
         {
-            
+
             card.transform.SetParent(GameManager.Instance.unmatchedTrayTransform);
             completedCards++;
             if (completedCards == cardSelection.selectedCards.Count)
             {
+                GameEvents.Instance.CardCountChanged(); //check for game end
                 completedCards = 0;
                 GameManager.Instance.cardsInBeltCount -= cardSelection.selectedCards.Count;
                 GameEvents.Instance.CardsInBeltChanged(GameManager.Instance.cardsInBeltCount); // inform gameevents on cardsinbeltchange
-
+                GameManager.Instance.cardWasClicked = false;
             }
+ 
         });
 
-        GameManager.Instance.cardWasClicked = false;
+
 
         //just in case
         GameManager.Instance.matchingTrayTransform = null;
@@ -184,12 +188,18 @@ public class CardAnimation : MonoBehaviour
             .SetEase(Ease.InCubic));
         seq2.OnComplete(() =>
         {
+
             completedCards++;
             GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().matchedCards.Add(card); // fill up matched cards 
+            
             if (completedCards == cardSelection.selectedCards.Count)
             {
+                GameManager.Instance.matchingTrayTransform.DOPunchScale(new Vector3(0.01f, 0.01f, 0.01f), 0.5f, 2, 0.5f);// simple animation of tray
+              
+                GameEvents.Instance.CardCountChanged(); //check for game end
+
                 GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsmatched += completedCards;
-                Debug.Log(GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsmatched);
+      
                 completedCards = 0;
                 StartCoroutine(RemoveCompletedTray()); // remove the mathcing tray if slot is full and update transform and other things
                 GameManager.Instance.cardsInBeltCount -= cardSelection.selectedCards.Count;
@@ -199,10 +209,11 @@ public class CardAnimation : MonoBehaviour
         });
     }
 
+
     private IEnumerator RemoveCompletedTray()
     {
         yield return new WaitForSeconds(1f);
-        Debug.Log(GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsInTray);
+        
         if (GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>() != null && 
             GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsInTray == GameManager.Instance.matchingTrayTransform.GetComponent<TrayData>().slotsmatched) // only delete if matched tray slots is full
         {
@@ -215,9 +226,14 @@ public class CardAnimation : MonoBehaviour
 
             Transform trayTransform = GameManager.Instance.matchingTrayTransform.parent;
 
-            if (trayTransform.childCount > 1) // check if child count is more than 1 then only we need to move the upper once to down 
-                trayTransform.GetChild(1).GetComponent<Transform>().position = GameManager.Instance.matchingTrayTransform.position;
+            //if (trayTransform.childCount > 1) // check if child count is more than 1 then only we need to move the upper once to down 
+            //    trayTransform.GetChild(1).GetComponent<Transform>().position = GameManager.Instance.matchingTrayTransform.position;
 
+
+            for(int i = trayTransform.childCount-1; i > 0; i--)
+            {
+                trayTransform.GetChild(i).GetComponent<Transform>().position = trayTransform.GetChild(i - 1).GetComponent<Transform>().position;
+            }
 
             Destroy(trayTransform.GetChild(0).gameObject);//destroy the fully matched tray
            
